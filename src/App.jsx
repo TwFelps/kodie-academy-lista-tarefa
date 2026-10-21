@@ -11,33 +11,43 @@ export default function App() {
   const [titulo, setTitulo] = useState('')
   const [filtro, setFiltro] = useState('all')
 
-  const tarefasVisiveis = tarefas
+  const tarefasVisiveis = tarefas.filter((tarefa) => {
+    if (filtro === 'pending') return tarefa.done === false
+    if (filtro === 'done') return tarefa.done === true
+    return true
+  })
 
   function adicionarTarefa(evento) {
     evento.preventDefault()
+    const tituloLimpo = titulo.trim()
+
+    if (tituloLimpo.length === 0) return
+
     const novaTarefa = {
-      id: tarefas.length + 1,
-      title: titulo,
+      id: crypto.randomUUID(),
+      title: tituloLimpo,
       done: false,
     }
 
-    setTarefas([...tarefas, novaTarefa])
+    setTarefas((tarefasAtuais) => [...tarefasAtuais, novaTarefa])
     setTitulo('')
   }
 
   function alternarTarefa(id) {
-    const tarefa = tarefas.find((item) => item.id === id)
-    if (tarefa) {
-      tarefa.done = !tarefa.done
-      setTarefas(tarefas)
-    }
+    setTarefas((tarefasAtuais) =>
+      tarefasAtuais.map((tarefa) =>
+        tarefa.id === id ? { ...tarefa, done: !tarefa.done } : tarefa,
+      ),
+    )
   }
 
   function excluirTarefa(id) {
-    setTarefas(tarefas.filter((tarefa) => tarefa.id != id))
+    setTarefas((tarefasAtuais) =>
+      tarefasAtuais.filter((tarefa) => tarefa.id !== id),
+    )
   }
 
-  const totalPendentes = tarefas.filter((tarefa) => tarefa.done === false).length
+  const totalPendentes = tarefas.filter((tarefa) => !tarefa.done).length
 
   return (
     <main className="aplicativo">
@@ -70,7 +80,10 @@ export default function App() {
           </div>
           <label className="rotulo-filtro">
             Filtrar
-            <select value={filtro} onChange={(evento) => setFiltro(evento.target.value)}>
+            <select
+              value={filtro}
+              onChange={(evento) => setFiltro(evento.target.value)}
+            >
               <option value="all">Todas</option>
               <option value="pending">Pendentes</option>
               <option value="done">Concluídas</option>
@@ -84,7 +97,11 @@ export default function App() {
           <ul className="lista-tarefas">
             {tarefasVisiveis.map((tarefa) => (
               <li className="tarefa" key={tarefa.id}>
-                <label className={tarefa.done ? 'titulo-tarefa concluida' : 'titulo-tarefa'}>
+                <label
+                  className={
+                    tarefa.done ? 'titulo-tarefa concluida' : 'titulo-tarefa'
+                  }
+                >
                   <input
                     type="checkbox"
                     checked={tarefa.done}
